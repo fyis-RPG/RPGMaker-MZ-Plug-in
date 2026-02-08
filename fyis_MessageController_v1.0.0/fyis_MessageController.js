@@ -6,8 +6,53 @@
 // http://opensource.org/licenses/mit-license.php
 // ----------------------------------------------------------------------------
 // Version
+// 1.2.0 2026/02/08 ボタン表示順・多段レイアウト・サブメニュートグル追加
+// 1.1.0 2026/02/08 名前ウィンドウ拡張・背景画像位置調整
 // 1.0.0 2026/02/07 初版
 //=============================================================================
+
+
+/*~struct~ButtonOrderConfig:
+ * @param autoButtonOrder
+ * @text オート表示順
+ * @desc 0で非表示。0以外は小さい順に配置
+ * @default 1
+ * @type number
+ * @min 0
+ * @max 9999
+ *
+ * @param skipButtonOrder
+ * @text スキップ表示順
+ * @desc 0で非表示。0以外は小さい順に配置
+ * @default 2
+ * @type number
+ * @min 0
+ * @max 9999
+ *
+ * @param saveButtonOrder
+ * @text セーブ表示順
+ * @desc 0で非表示。0以外は小さい順に配置
+ * @default 3
+ * @type number
+ * @min 0
+ * @max 9999
+ *
+ * @param loadButtonOrder
+ * @text ロード表示順
+ * @desc 0で非表示。0以外は小さい順に配置
+ * @default 4
+ * @type number
+ * @min 0
+ * @max 9999
+ *
+ * @param logButtonOrder
+ * @text バックログ表示順
+ * @desc 0で非表示。0以外は小さい順に配置
+ * @default 5
+ * @type number
+ * @min 0
+ * @max 9999
+ */
 
 /*:
  * @plugindesc 汎用メッセージ制御プラグイン
@@ -237,139 +282,229 @@
  * @dir img/pictures
  * @parent --- ボタン画像 ---
  *
+ * @param menuButtonImage
+ * @text メニューボタン画像
+ * @desc サブメニュートグル用ボタン画像(img/pictures)
+ * @default
+ * @type file
+ * @dir img/pictures/
+ * @parent --- ボタン画像 ---
+ *
+ * @param menuButtonHoverImage
+ * @text メニューボタンホバー画像
+ * @desc マウスオーバー時のメニューボタン画像
+ * @default
+ * @type file
+ * @dir img/pictures
+ * @parent --- ボタン画像 ---
+ *
  * @param --- ボタンレイアウト ---
  * @default
  *
- * @param autoButtonX
- * @text オートボタンX
- * @desc オートボタンのX座標
- * @default -380
- * @type number
- * @min -2000
- * @max 2000
+ * @param enableSubMenu
+ * @text サブメニュー機能
+ * @desc ONにするとメニューボタンで一部のボタンを展開/収納できます
+ * @default false
+ * @type boolean
  * @parent --- ボタンレイアウト ---
  *
- * @param autoButtonY
- * @text オートボタンY
- * @desc オートボタンのY座標
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
+ * @param autoAlignButtons
+ * @text ボタン自動整列
+ * @desc ON:画像幅に合わせて自動配置(→自動整列設定を使用) OFF:個別座標で配置(→手動配置設定を使用)
+ * @default false
+ * @type boolean
  * @parent --- ボタンレイアウト ---
  *
- * @param skipButtonX
- * @text スキップボタンX
- * @desc スキップボタンのX座標
- * @default -304
- * @type number
- * @min -2000
- * @max 2000
+ * @param --- 自動整列設定 ---
+ * @text --- 自動整列設定(自動整列ON時のみ有効) ---
+ * @default
  * @parent --- ボタンレイアウト ---
  *
- * @param skipButtonY
- * @text スキップボタンY
- * @desc スキップボタンのY座標
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- ボタンレイアウト ---
+ * @param buttonAlignPos
+ * @text 整列基準位置
+ * @desc ボタンをどの角から並べるかを指定します。(自動整列ON時のみ有効)
+ * @default right_bottom
+ * @type select
+ * @option 右下から左へ
+ * @value right_bottom
+ * @option 左下から右へ
+ * @value left_bottom
+ * @option 右上から左へ
+ * @value right_top
+ * @option 左上から右へ
+ * @value left_top
+ * @parent --- 自動整列設定 ---
  *
- * @param saveButtonX
- * @text セーブボタンX
- * @desc セーブボタンのX座標
- * @default -228
+ * @param buttonSpacing
+ * @text ボタン間隔
+ * @desc ボタン同士の間の隙間をピクセルで指定します。(自動整列ON時のみ有効)
+ * @default 4
  * @type number
- * @min -2000
- * @max 2000
- * @parent --- ボタンレイアウト ---
+ * @min 0
+ * @parent --- 自動整列設定 ---
  *
- * @param saveButtonY
- * @text セーブボタンY
- * @desc セーブボタンのY座標
- * @default -32
+ * @param buttonAlignOffsetX
+ * @text 整列基準X補正
+ * @desc 整列の開始位置をX方向にずらします。マイナスで端から離れます。(自動整列ON時のみ有効)
+ * @default 0
  * @type number
  * @min -2000
  * @max 2000
- * @parent --- ボタンレイアウト ---
+ * @parent --- 自動整列設定 ---
  *
- * @param loadButtonX
- * @text ロードボタンX
- * @desc ロードボタンのX座標
- * @default -152
+ * @param buttonAlignOffsetY
+ * @text 整列基準Y補正
+ * @desc 整列の開始位置をY方向にずらします。マイナスで上方向。(自動整列ON時のみ有効)
+ * @default 0
  * @type number
  * @min -2000
  * @max 2000
- * @parent --- ボタンレイアウト ---
+ * @parent --- 自動整列設定 ---
  *
- * @param loadButtonY
- * @text ロードボタンY
- * @desc ロードボタンのY座標
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- ボタンレイアウト ---
+ * @param buttonOrder
+ * @text ボタン表示順
+ * @desc 各ボタンの表示順番号。小さい順に配置。0で非表示。(自動整列ON時のみ有効)
+ * @default {"autoButtonOrder":"1","skipButtonOrder":"2","saveButtonOrder":"3","loadButtonOrder":"4","logButtonOrder":"5"}
+ * @type struct<ButtonOrderConfig>
+ * @parent --- 自動整列設定 ---
  *
- * @param logButtonX
- * @text バックログボタンX
- * @desc バックログボタンのX座標
- * @default -76
+ * @param buttonColumns
+ * @text 1段あたりのボタン数
+ * @desc 指定数ごとに次の段に折り返します。0=折り返しなし。(自動整列ON時のみ有効)
+ * @default 0
  * @type number
- * @min -2000
- * @max 2000
- * @parent --- ボタンレイアウト ---
+ * @min 0
+ * @max 10
+ * @parent --- 自動整列設定 ---
  *
- * @param logButtonY
- * @text バックログボタンY
- * @desc バックログボタンのY座標
- * @default -32
+ * @param buttonRowSpacing
+ * @text 段間の間隔
+ * @desc 多段配置時の段と段の間隔(ピクセル)。(自動整列ON時のみ有効)
+ * @default 2
  * @type number
- * @min -2000
- * @max 2000
+ * @min 0
+ * @parent --- 自動整列設定 ---
+ *
+ * @param --- 手動配置設定 ---
+ * @text --- 手動配置設定(自動整列OFF時のみ有効) ---
+ * @default
  * @parent --- ボタンレイアウト ---
  *
  * @param buttonAnchor
  * @text ボタン原点
- * @desc ボタン座標の原点をメッセージウィンドウのどの隅にするか
+ * @desc 各ボタンXY座標の基準点となるウィンドウの角。(自動整列OFF時のみ有効)
  * @default 3
  * @type select
- * @option ウィンドウの左上
+ * @option 左上
  * @value 0
- * @option ウィンドウの右上
+ * @option 右上
  * @value 1
- * @option ウィンドウの左下
+ * @option 左下
  * @value 2
- * @option ウィンドウの右下
+ * @option 右下
  * @value 3
- * @parent --- ボタンレイアウト ---
+ * @parent --- 手動配置設定 ---
  *
  * @param buttonPosType
  * @text ボタン座標タイプ
- * @desc ボタンの座標指定方法
+ * @desc 座標の指定方法。相対座標はウィンドウ原点基準、絶対座標は画面左上基準。(自動整列OFF時のみ有効)
  * @default relative
  * @type select
  * @option 相対座標(ウィンドウ基準)
  * @value relative
  * @option 絶対座標(画面基準)
  * @value absolute
- * @parent --- ボタンレイアウト ---
+ * @parent --- 手動配置設定 ---
  *
- * @param autoAlignButtons
- * @text ボタン自動整列
- * @desc ONにすると画像の幅に合わせてボタンを自動的に並べます(右から順)。
- * @default false
- * @type boolean
- * @parent --- ボタンレイアウト ---
- *
- * @param buttonSpacing
- * @text ボタン間隔
- * @desc 自動整列時のボタン間の隙間(ピクセル)
- * @default 4
+ * @param autoButtonX
+ * @text オートボタンX
+ * @desc オートボタンのX座標(自動整列OFF時のみ有効)
+ * @default -380
  * @type number
- * @min 0
- * @parent --- ボタンレイアウト ---
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param autoButtonY
+ * @text オートボタンY
+ * @desc オートボタンのY座標(自動整列OFF時のみ有効)
+ * @default -32
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param skipButtonX
+ * @text スキップボタンX
+ * @desc スキップボタンのX座標(自動整列OFF時のみ有効)
+ * @default -304
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param skipButtonY
+ * @text スキップボタンY
+ * @desc スキップボタンのY座標(自動整列OFF時のみ有効)
+ * @default -32
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param saveButtonX
+ * @text セーブボタンX
+ * @desc セーブボタンのX座標(自動整列OFF時のみ有効)
+ * @default -228
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param saveButtonY
+ * @text セーブボタンY
+ * @desc セーブボタンのY座標(自動整列OFF時のみ有効)
+ * @default -32
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param loadButtonX
+ * @text ロードボタンX
+ * @desc ロードボタンのX座標(自動整列OFF時のみ有効)
+ * @default -152
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param loadButtonY
+ * @text ロードボタンY
+ * @desc ロードボタンのY座標(自動整列OFF時のみ有効)
+ * @default -32
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param logButtonX
+ * @text バックログボタンX
+ * @desc バックログボタンのX座標(自動整列OFF時のみ有効)
+ * @default -76
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param logButtonY
+ * @text バックログボタンY
+ * @desc バックログボタンのY座標(自動整列OFF時のみ有効)
+ * @default -32
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
  *
  * @param --- メッセージウィンドウ ---
  * @default
@@ -380,6 +515,24 @@
  * @default
  * @type file
  * @dir img/pictures/
+ * @parent --- メッセージウィンドウ ---
+ *
+ * @param messageWindowImageX
+ * @text メッセージウィンドウ背景X
+ * @desc メッセージウィンドウ背景画像のX座標補正
+ * @default 0
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- メッセージウィンドウ ---
+ *
+ * @param messageWindowImageY
+ * @text メッセージウィンドウ背景Y
+ * @desc メッセージウィンドウ背景画像のY座標補正
+ * @default 0
+ * @type number
+ * @min -2000
+ * @max 2000
  * @parent --- メッセージウィンドウ ---
  *
  * @param hideWindowFrame
@@ -395,6 +548,56 @@
  * @default
  * @type file
  * @dir img/pictures/
+ * @parent --- メッセージウィンドウ ---
+ *
+ * @param nameWindowImageX
+ * @text 名前ウィンドウ背景X
+ * @desc 名前ウィンドウ背景画像のX座標補正
+ * @default 0
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- メッセージウィンドウ ---
+ *
+ * @param nameWindowImageY
+ * @text 名前ウィンドウ背景Y
+ * @desc 名前ウィンドウ背景画像のY座標補正
+ * @default 0
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- メッセージウィンドウ ---
+ *
+ * @param nameWindowOffsetX
+ * @text 名前ウィンドウ位置X
+ * @desc 名前ウィンドウの表示位置X補正
+ * @default 0
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- メッセージウィンドウ ---
+ *
+ * @param nameWindowOffsetY
+ * @text 名前ウィンドウ位置Y
+ * @desc 名前ウィンドウの表示位置Y補正
+ * @default 0
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- メッセージウィンドウ ---
+ *
+ * @param nameWindowHideFrame
+ * @text 名前ウィンドウ枠非表示
+ * @desc ONにすると名前ウィンドウの枠を非表示にします。
+ * @default false
+ * @type boolean
+ * @parent --- メッセージウィンドウ ---
+ *
+ * @param nameWindowDisableMask
+ * @text 名前ウィンドウマスク無効
+ * @desc ONにすると名前ウィンドウとメッセージウィンドウの重なり部分を削らなくなります。
+ * @default false
+ * @type boolean
  * @parent --- メッセージウィンドウ ---
  *
  * @param --- バックログ ---
@@ -592,6 +795,22 @@
  * 各ボタンの座標は「ボタン原点」で指定した基準点からの相対位置です。
  * デフォルトではウィンドウ右下が原点で、ウィンドウ内の右下に配置。
  *
+ * ■ ボタン表示順（自動整列ON時）
+ * 「ボタン表示順」構造体で各ボタンに番号を設定します。
+ * 小さい番号のボタンから順に配置されます。
+ * 番号を0にするとそのボタンは非表示になります。
+ * 99、100、999 のような飛び番号でも問題ありません。
+ *
+ * ■ 多段レイアウト（自動整列ON時）
+ * 「1段あたりのボタン数」を指定すると、その数ごとに改行して
+ * 複数段にボタンを配置できます。0の場合は折り返しなしの1段配置。
+ * 「段間の間隔」で段と段の隙間を調整できます。
+ *
+ * ■ サブメニュー
+ * 「サブメニュー機能」をONにすると、メニューボタン(▲)のみが
+ * 常時表示され、クリックで全ボタンを展開/収納できます。
+ * 画面をスッキリさせたい場合に便利です。
+ *
  * ■ プラグインコマンド
  * ・バックログを表示: バックログ画面を開きます。
  * ・区切り線を挿入: バックログに区切り線を挿入します。
@@ -637,6 +856,30 @@
     // パラメータ取得
     // =========================================================================
     const param = PluginManagerEx.createParameter(script);
+
+    // ボタン並び順のヘルパー（各ボタンの表示順番号から算出、0=非表示）
+    const _defaultOrder = ['auto', 'skip', 'save', 'load', 'log'];
+    const _buttonOrderMap = {
+        auto: 'autoButtonOrder',
+        skip: 'skipButtonOrder',
+        save: 'saveButtonOrder',
+        load: 'loadButtonOrder',
+        log: 'logButtonOrder'
+    };
+    const _getButtonOrder = function () {
+        const cfg = param.buttonOrder;
+        if (!cfg || typeof cfg !== 'object') return _defaultOrder;
+        const entries = [];
+        for (const [key, paramName] of Object.entries(_buttonOrderMap)) {
+            const order = cfg[paramName];
+            if (order != null && order !== 0) {
+                entries.push({ key, order });
+            }
+        }
+        if (entries.length === 0) return _defaultOrder;
+        entries.sort((a, b) => a.order - b.order);
+        return entries.map(e => e.key);
+    };
 
     // autoWaitFrame は計算式文字列なので、createParameter の数値変換を避けて直接取得
     const rawPluginParams = PluginManager.parameters(pluginName);
@@ -998,8 +1241,10 @@
     Window_Message.prototype.updatePlacement = function () {
         _Window_Message_updatePlacement.call(this);
         if (this._msgCtrlBackSprite) {
-            this._msgCtrlBackSprite.x = this.width / 2;
-            this._msgCtrlBackSprite.y = this.height / 2;
+            const offsetX = (param.messageWindowImageX || 0);
+            const offsetY = (param.messageWindowImageY || 0);
+            this._msgCtrlBackSprite.x = this.width / 2 + offsetX;
+            this._msgCtrlBackSprite.y = this.height / 2 + offsetY;
         }
         this._updateControlButtonPlacement();
 
@@ -1044,6 +1289,19 @@
             closeBtn.bitmap.addLoadListener(() => {
                 this._updateControlButtonPlacement();
             });
+        }
+
+        // メニューボタン（サブメニュートグル用）
+        if (param.enableSubMenu) {
+            const menuBtn = new Sprite_MsgCtrlButton('▲', param.menuButtonImage, null, param.menuButtonHoverImage);
+            this._ctrlButtons.menu = menuBtn;
+            this.addChild(menuBtn);
+            if (menuBtn.bitmap && !menuBtn.bitmap.isReady()) {
+                menuBtn.bitmap.addLoadListener(() => {
+                    this._updateControlButtonPlacement();
+                });
+            }
+            this._subMenuOpen = false;
         }
     };
 
@@ -1098,61 +1356,104 @@
 
     Window_Message.prototype._alignControlButtons = function () {
         const spacing = param.buttonSpacing || 4;
-        // ボタン原点(buttonAnchor)を基準にする
-        const anchor = param.buttonAnchor !== undefined ? param.buttonAnchor : 3;
-        // 0:左上, 1:右上, 2:左下, 3:右下
-        const isRight = (anchor === 1 || anchor === 3);
-        const isBottom = (anchor === 2 || anchor === 3);
+        const alignPos = param.buttonAlignPos || 'right_bottom'; // 'right_bottom' etc
 
+        // 基準位置の決定 (ウィンドウ内相対座標)
+        // right_bottom: 右下 (width, height) から左へ並べる
         let baseX = 0;
         let baseY = 0;
+        let isRight = false; // 右から左へ並べるか
+        const alignOffsetX = (param.buttonAlignOffsetX || 0);
+        const alignOffsetY = (param.buttonAlignOffsetY || 0);
 
-        // ウィンドウサイズのパディング考慮しない外枠基準か、コンテンツ内側か。
-        // _placeControlButtonsの_getRelativeButtonPosでは this.width/height を足している。
-        // ここでも this.width/height を基準にする。
+        if (alignPos.includes('right')) {
+            baseX = this.width + alignOffsetX;
+            isRight = true;
+        } else {
+            baseX = 0 + alignOffsetX;
+            isRight = false;
+        }
 
-        if (anchor === 0) { baseX = 0; baseY = 0; }
-        else if (anchor === 1) { baseX = this.width; baseY = 0; }
-        else if (anchor === 2) { baseX = 0; baseY = this.height; }
-        else if (anchor === 3) { baseX = this.width; baseY = this.height; }
+        if (alignPos.includes('bottom')) {
+            baseY = this.height + alignOffsetY;
+        } else if (alignPos.includes('top')) {
+            baseY = 0 + alignOffsetY;
+        } else { // outside_top など
+            baseY = -40 + alignOffsetY;
+        }
+
+        // 並べるボタンの順序（パラメータから取得、未指定ならデフォルト）
+        const order = _getButtonOrder();
+
+        // サブメニュー対象キー（ON時は全ボタンが対象）
+        const subMenuKeys = param.enableSubMenu ? ['auto', 'skip', 'save', 'load', 'log'] : [];
+
+        // リストに含まれないボタンを非表示
+        const allKeys = ['auto', 'skip', 'save', 'load', 'log'];
+        for (const key of allKeys) {
+            if (this._ctrlButtons[key]) {
+                this._ctrlButtons[key].visible = order.includes(key);
+            }
+        }
+
+        // レイアウト用のキー配列を構築（メニューボタン＋表示順のボタン）
+        let layoutKeys = [...order];
+        // サブメニューON時：閉じているときはサブメニュー対象を除外
+        if (param.enableSubMenu && !this._subMenuOpen) {
+            layoutKeys = layoutKeys.filter(k => !subMenuKeys.includes(k));
+        }
+        // メニューボタンを自動整列リストに追加
+        if (param.enableSubMenu && this._ctrlButtons.menu) {
+            layoutKeys.push('menu');
+        }
+
+        // 右寄せの場合は右端から順に配置するため逆順に
+        const layoutOrder = isRight ? [...layoutKeys].reverse() : layoutKeys;
+
+        // 多段レイアウト設定
+        const columns = param.buttonColumns || 0; // 0=折り返しなし
+        const rowSpacing = param.buttonRowSpacing != null ? param.buttonRowSpacing : 2;
+        const isBottom = alignPos.includes('bottom');
 
         let offsetX = 0;
+        let colIndex = 0;  // 現在の段内でのボタン数
+        let rowIndex = 0;  // 現在の段番号
 
-        // 並べる順序: 右基準なら右から Backlog -> Load -> Save -> Skip -> Auto
-        // 左基準なら左から Auto -> Skip -> Save -> Load -> Backlog
-        const buttons = isRight ?
-            ['log', 'load', 'save', 'skip', 'auto'] :
-            ['auto', 'skip', 'save', 'load', 'log'];
-
-        buttons.forEach(key => {
+        layoutOrder.forEach(key => {
             const btn = this._ctrlButtons[key];
-            if (!btn || !btn.visible) return; // visible判定はまだupdate前なので不完全かもだが、存在確認
-
-            // サイズ取得 (画像ロード待ち対応済み前提だが、未ロード時は0やfallback)
+            if (!btn) return;
             const btnW = (btn.bitmap && btn.bitmap.isReady()) ? btn.bitmap.width : (param.fallbackButtonWidth || 72);
             const btnH = (btn.bitmap && btn.bitmap.isReady()) ? btn.bitmap.height : (param.fallbackButtonHeight || 28);
 
-            let x = 0;
-            let y = 0;
+            // 折り返し判定
+            if (columns > 0 && colIndex >= columns) {
+                colIndex = 0;
+                offsetX = 0;
+                rowIndex++;
+            }
 
-            // Y座標
+            // Y座標（段のオフセットを加算）
+            const rowOffset = rowIndex * (btnH + rowSpacing);
+            let y = 0;
             if (isBottom) {
-                y = baseY - btnH - 4; // 下端から少し浮かす
+                y = baseY - btnH - 4 - rowOffset; // 下から上へ積む
             } else {
-                y = baseY + 4;
+                y = baseY + 4 + rowOffset; // 上から下へ積む
             }
 
             // X座標
+            let x = 0;
             if (isRight) {
-                x = baseX - offsetX - btnW - 4; // 右端パディング
+                x = baseX - offsetX - btnW - 4;
                 offsetX += btnW + spacing;
             } else {
-                x = baseX + offsetX + 4; // 左端パディング
+                x = baseX + offsetX + 4;
                 offsetX += btnW + spacing;
             }
 
             btn.x = x;
             btn.y = y;
+            colIndex++;
         });
     };
 
@@ -1179,8 +1480,27 @@
     Window_Message.prototype._updateControlButtons = function () {
         if (!this._ctrlButtons) return;
         const visible = this.isOpen() && !isPluginDisabled() && isButtonVisible() && !this._msgCtrlHidden;
+
+        // 自動整列ON時は除外ボタンを常に非表示
+        let excludedKeys = [];
+        if (param.autoAlignButtons) {
+            const order = _getButtonOrder();
+            excludedKeys = ['auto', 'skip', 'save', 'load', 'log'].filter(k => !order.includes(k));
+        }
+
+        // サブメニュー対象（ON時は全ボタンが対象）
+        const subMenuKeys = param.enableSubMenu ? ['auto', 'skip', 'save', 'load', 'log'] : [];
+
         for (const key of Object.keys(this._ctrlButtons)) {
-            this._ctrlButtons[key].visible = visible;
+            if (key === 'menu') {
+                // メニューボタン自体は常に表示
+                this._ctrlButtons[key].visible = visible;
+            } else if (param.enableSubMenu && subMenuKeys.includes(key)) {
+                // サブメニュー対象はトグル状態に応じて表示
+                this._ctrlButtons[key].visible = visible && this._subMenuOpen && !excludedKeys.includes(key);
+            } else {
+                this._ctrlButtons[key].visible = visible && !excludedKeys.includes(key);
+            }
         }
         if (!visible) return;
 
@@ -1216,15 +1536,13 @@
     // ----- 確認ウィンドウのサブウィンドウ判定 -----
     const _Window_Message_isAnySubWindowActive = Window_Message.prototype.isAnySubWindowActive;
     Window_Message.prototype.isAnySubWindowActive = function () {
-        if (this._msgCtrlConfirmWindow && this._msgCtrlConfirmWindow.active) {
-            return true;
-        }
-        try {
-            return _Window_Message_isAnySubWindowActive.call(this);
-        } catch (e) {
-            return false;
-        }
+        if (this._msgCtrlConfirmWindow && this._msgCtrlConfirmWindow.active) return true;
+        return _Window_Message_isAnySubWindowActive.call(this);
     };
+
+
+
+
 
     // ----- キー操作 -----
     const _Window_Message_updateInput = Window_Message.prototype.updateInput;
@@ -1335,6 +1653,11 @@
                 this.openness = 0;
                 return true;
             }
+            if (this._ctrlButtons.menu && this._ctrlButtons.menu.isClicked()) {
+                this._subMenuOpen = !this._subMenuOpen;
+                this._updateControlButtonPlacement();
+                return true;
+            }
         }
 
         // ショートカットキー
@@ -1437,6 +1760,8 @@
     Window_Message.prototype.startMessage = function () {
         _Window_Message_startMessage.call(this);
         this._initAutoCount();
+        this._allButtonsLayoutDone = false; // 毎回レイアウト確認を行う
+        this._lastButtonWidthHash = "";     // ハッシュもリセットして強制再計算
     };
 
     Window_Message.prototype._initAutoCount = function () {
@@ -2127,29 +2452,71 @@
     };
 
     // =========================================================================
-    // Window_NameBox — 名前ウィンドウ背景画像対応
+    // Window_NameBox — 名前ウィンドウ拡張
     // =========================================================================
-    if (param.nameWindowImage) {
-        const _Window_NameBox_initialize = Window_NameBox.prototype.initialize;
-        Window_NameBox.prototype.initialize = function (rect) {
-            _Window_NameBox_initialize.call(this, rect);
+    const _Window_NameBox_initialize = Window_NameBox.prototype.initialize;
+    Window_NameBox.prototype.initialize = function (rect) {
+        _Window_NameBox_initialize.call(this, rect);
+
+        // 背景画像
+        if (param.nameWindowImage) {
             const bitmap = ImageManager.loadPicture(param.nameWindowImage);
             this._nameBackSprite = new Sprite(bitmap);
             this._nameBackSprite.anchor.x = 0.5;
             this._nameBackSprite.anchor.y = 0.5;
             this._container.addChildAt(this._nameBackSprite, 0);
-            if (param.hideWindowFrame) {
-                this._backSprite.visible = false;
-                this._frameSprite.visible = false;
+        }
+
+        // 枠非表示
+        if (param.nameWindowHideFrame) {
+            if (this._backSprite) this._backSprite.visible = false;
+            if (this._frameSprite) this._frameSprite.visible = false;
+            // MZ標準プロパティがあれば設定
+            if (this.frameVisible !== undefined) this.frameVisible = false;
+        }
+    };
+
+    const _Window_NameBox_updatePlacement = Window_NameBox.prototype.updatePlacement;
+    Window_NameBox.prototype.updatePlacement = function () {
+        _Window_NameBox_updatePlacement.call(this);
+
+        // ウィンドウ位置補正
+        const offsetX = (param.nameWindowOffsetX || 0);
+        const offsetY = (param.nameWindowOffsetY || 0);
+        this.x += offsetX;
+        this.y += offsetY;
+
+        // 背景画像位置補正
+        if (this._nameBackSprite) {
+            const imgOffsetX = (param.nameWindowImageX || 0);
+            const imgOffsetY = (param.nameWindowImageY || 0);
+            this._nameBackSprite.x = this.width / 2 + imgOffsetX;
+            this._nameBackSprite.y = this.height / 2 + imgOffsetY;
+        }
+    };
+
+    // ----- マスク無効化 -----
+    // WindowLayerはステンシルバッファを使い、drawShapeで描かれた矩形で
+    // ウィンドウ同士の重なり部分をマスクする。
+    // NameBoxをWindowLayerから取り出してScene直下に配置することで、
+    // ステンシルシステムを完全に回避し、両ウィンドウが完全に描画される。
+    if (param.nameWindowDisableMask) {
+        const _Scene_Message_associateWindows = Scene_Message.prototype.associateWindows;
+        Scene_Message.prototype.associateWindows = function () {
+            _Scene_Message_associateWindows.call(this);
+            // NameBoxをWindowLayerから取り出してScene直下に配置
+            if (this._windowLayer && this._nameBoxWindow) {
+                this._windowLayer.removeChild(this._nameBoxWindow);
+                this.addChild(this._nameBoxWindow);
             }
         };
 
-        const _Window_NameBox_updatePlacement = Window_NameBox.prototype.updatePlacement;
-        Window_NameBox.prototype.updatePlacement = function () {
-            _Window_NameBox_updatePlacement.call(this);
-            if (this._nameBackSprite) {
-                this._nameBackSprite.x = this.width / 2;
-                this._nameBackSprite.y = this.height / 2;
+        // NameBoxの可視性をMessageWindowの非表示状態に連動
+        const _Window_Message_update_mask = Window_Message.prototype.update;
+        Window_Message.prototype.update = function () {
+            _Window_Message_update_mask.call(this);
+            if (this._nameBoxWindow) {
+                this._nameBoxWindow.visible = this.visible && !this._msgCtrlHidden;
             }
         };
     }
