@@ -384,8 +384,8 @@
  *
  * @param hideWindowFrame
  * @text ウィンドウ枠非表示
- * @desc ONにすると背景画像使用時にウィンドウ枠を非表示にします。
- * @default true
+ * @desc ONにすると設定に関わらずウィンドウ枠を非表示にします。
+ * @default false
  * @type boolean
  * @parent --- メッセージウィンドウ ---
  *
