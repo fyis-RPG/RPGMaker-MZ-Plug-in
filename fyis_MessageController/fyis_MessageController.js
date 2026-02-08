@@ -8,7 +8,7 @@
 // Version
 // 1.2.0 2026/02/08 ボタン表示順・多段レイアウト・サブメニュートグル追加
 // 1.1.0 2026/02/08 名前ウィンドウ拡張・背景画像位置調整
-// 1.0.0 2026/02/07 初版 
+// 1.0.0 2026/02/07 初版
 //=============================================================================
 
 
@@ -311,7 +311,7 @@
  * @param autoAlignButtons
  * @text ボタン自動整列
  * @desc ON:画像幅に合わせて自動配置(→自動整列設定を使用) OFF:個別座標で配置(→手動配置設定を使用)
- * @default false
+ * @default true
  * @type boolean
  * @parent --- ボタンレイアウト ---
  *
@@ -419,7 +419,7 @@
  * @param autoButtonX
  * @text オートボタンX
  * @desc オートボタンのX座標(自動整列OFF時のみ有効)
- * @default -380
+ * @default -456
  * @type number
  * @min -2000
  * @max 2000
@@ -437,7 +437,7 @@
  * @param skipButtonX
  * @text スキップボタンX
  * @desc スキップボタンのX座標(自動整列OFF時のみ有効)
- * @default -304
+ * @default -380
  * @type number
  * @min -2000
  * @max 2000
@@ -455,7 +455,7 @@
  * @param saveButtonX
  * @text セーブボタンX
  * @desc セーブボタンのX座標(自動整列OFF時のみ有効)
- * @default -228
+ * @default -304
  * @type number
  * @min -2000
  * @max 2000
@@ -473,7 +473,7 @@
  * @param loadButtonX
  * @text ロードボタンX
  * @desc ロードボタンのX座標(自動整列OFF時のみ有効)
- * @default -152
+ * @default -228
  * @type number
  * @min -2000
  * @max 2000
@@ -491,7 +491,7 @@
  * @param logButtonX
  * @text バックログボタンX
  * @desc バックログボタンのX座標(自動整列OFF時のみ有効)
- * @default -76
+ * @default -152
  * @type number
  * @min -2000
  * @max 2000
@@ -500,6 +500,24 @@
  * @param logButtonY
  * @text バックログボタンY
  * @desc バックログボタンのY座標(自動整列OFF時のみ有効)
+ * @default -32
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param menuButtonX
+ * @text メニューボタンX
+ * @desc メニューボタンのX座標(自動整列OFF時のみ有効)
+ * @default -76
+ * @type number
+ * @min -2000
+ * @max 2000
+ * @parent --- 手動配置設定 ---
+ *
+ * @param menuButtonY
+ * @text メニューボタンY
+ * @desc メニューボタンのY座標(自動整列OFF時のみ有効)
  * @default -32
  * @type number
  * @min -2000
@@ -1325,12 +1343,36 @@
             this._placeControlButtons();
         }
 
-        // ×ボタンはウィンドウ右上に固定
+        // ×ボタンの配置（右上基準、重なり時は左にずらす）
         if (this._ctrlButtons.close) {
             const btn = this._ctrlButtons.close;
-            const btnW = (btn.bitmap && btn.bitmap.width) || 24;
-            this._ctrlButtons.close.x = this.width - btnW - 4;
-            this._ctrlButtons.close.y = 4;
+            const closeBtnW = (btn.bitmap && btn.bitmap.width) || 24;
+            const closeBtnH = (btn.bitmap && btn.bitmap.height) || 24;
+            let closeX = this.width - closeBtnW - 4;
+            let closeY = 4;
+
+            // 自動整列時：他ボタンと重なるなら左にずらす
+            if (param.autoAlignButtons) {
+                const shouldCheck = !param.enableSubMenu || this._subMenuOpen;
+                if (shouldCheck) {
+                    for (const key of Object.keys(this._ctrlButtons)) {
+                        if (key === 'close') continue;
+                        const other = this._ctrlButtons[key];
+                        if (!other.visible) continue;
+                        const otherW = (other.bitmap && other.bitmap.isReady()) ? other.bitmap.width : (param.fallbackButtonWidth || 72);
+                        const otherH = (other.bitmap && other.bitmap.isReady()) ? other.bitmap.height : (param.fallbackButtonHeight || 28);
+                        // 矩形の重なり判定
+                        if (closeX < other.x + otherW && closeX + closeBtnW > other.x &&
+                            closeY < other.y + otherH && closeY + closeBtnH > other.y) {
+                            closeX = other.x - closeBtnW - 4;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            btn.x = closeX;
+            btn.y = closeY;
         }
     };
 
@@ -1338,11 +1380,12 @@
         // 0はデフォルト値として有効なのでnullチェックを使用
         const getVal = (v, def) => (v !== undefined && v !== null) ? v : def;
         const positions = {
-            auto: { x: getVal(param.autoButtonX, -380), y: getVal(param.autoButtonY, -32) },
-            skip: { x: getVal(param.skipButtonX, -304), y: getVal(param.skipButtonY, -32) },
-            save: { x: getVal(param.saveButtonX, -228), y: getVal(param.saveButtonY, -32) },
-            load: { x: getVal(param.loadButtonX, -152), y: getVal(param.loadButtonY, -32) },
-            log: { x: getVal(param.logButtonX, -76), y: getVal(param.logButtonY, -32) }
+            auto: { x: getVal(param.autoButtonX, -456), y: getVal(param.autoButtonY, -32) },
+            skip: { x: getVal(param.skipButtonX, -380), y: getVal(param.skipButtonY, -32) },
+            save: { x: getVal(param.saveButtonX, -304), y: getVal(param.saveButtonY, -32) },
+            load: { x: getVal(param.loadButtonX, -228), y: getVal(param.loadButtonY, -32) },
+            log: { x: getVal(param.logButtonX, -152), y: getVal(param.logButtonY, -32) },
+            menu: { x: getVal(param.menuButtonX, -76), y: getVal(param.menuButtonY, -32) }
         };
 
         for (const key of Object.keys(positions)) {
@@ -1402,7 +1445,7 @@
         if (param.enableSubMenu && !this._subMenuOpen) {
             layoutKeys = layoutKeys.filter(k => !subMenuKeys.includes(k));
         }
-        // メニューボタンを自動整列リストに追加
+        // メニューボタンをレイアウト末尾に追加
         if (param.enableSubMenu && this._ctrlButtons.menu) {
             layoutKeys.push('menu');
         }
@@ -1648,14 +1691,15 @@
                 this._onShowBacklog();
                 return true;
             }
-            if (this._ctrlButtons.close && this._ctrlButtons.close.isClicked()) {
-                this._msgCtrlHidden = true;
-                this.openness = 0;
-                return true;
-            }
             if (this._ctrlButtons.menu && this._ctrlButtons.menu.isClicked()) {
                 this._subMenuOpen = !this._subMenuOpen;
                 this._updateControlButtonPlacement();
+                return true;
+            }
+            // ×ボタンは他のボタンより後に判定（重なり時に他ボタン優先）
+            if (this._ctrlButtons.close && this._ctrlButtons.close.isClicked()) {
+                this._msgCtrlHidden = true;
+                this.openness = 0;
                 return true;
             }
         }
@@ -2533,4 +2577,3 @@
 
 
 })();
-
