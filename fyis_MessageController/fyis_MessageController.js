@@ -685,12 +685,19 @@
  * @default
  *
  * @param quickSaveSlot
- * @text クイックセーブスロット
- * @desc クイックセーブで使用するセーブスロット番号(1~)
+ * @text クイックセーブ専用スロット
+ * @desc ON:セーブ/ロード画面に「クイックセーブ」欄を追加(手動上書き不可) OFF:指定スロットに保存
+ * @default true
+ * @type boolean
+ * @parent --- セーブ/ロード ---
+ *
+ * @param quickSaveSlotNumber
+ * @text クイックセーブスロット番号
+ * @desc 専用スロットOFF時にクイックセーブするスロット番号(1~)
  * @default 1
  * @type number
  * @min 1
- * @max 20
+ * @max 99
  * @parent --- セーブ/ロード ---
  *
  * @param --- 表示制御 ---
@@ -979,6 +986,64 @@
     PluginManager.registerCommand(pluginName, 'clearSkipAuto', function () {
         $gameMessage.clearMsgCtrlModes();
     });
+
+    // =========================================================================
+    // クイックセーブ専用スロット
+    // =========================================================================
+    // maxSavefilesを+1して専用スロットを確保(スロットID 1 = クイックセーブ)
+    // 他プラグインが変更した後の値に+1する
+    const _DataManager_maxSavefiles = DataManager.maxSavefiles;
+    if (param.quickSaveSlot) {
+        DataManager.maxSavefiles = function () {
+            return _DataManager_maxSavefiles.call(this) + 1;
+        };
+    }
+
+    // クイックセーブスロットIDを取得
+    const _getQuickSaveSlotId = function () {
+        if (param.quickSaveSlot) {
+            return 1; // オートセーブ(0)の直後
+        } else {
+            return (param.quickSaveSlotNumber || 1);
+        }
+    };
+
+    if (param.quickSaveSlot) {
+        // セーブ画面でクイックセーブスロットを手動上書き不可にする
+        const _Window_SavefileList_isEnabled = Window_SavefileList.prototype.isEnabled;
+        Window_SavefileList.prototype.isEnabled = function (savefileId) {
+            if (this._mode === 'save' && savefileId === 1) {
+                return false;
+            }
+            return _Window_SavefileList_isEnabled.call(this, savefileId);
+        };
+
+        // セーブ/ロード画面のタイトル表示
+        // ID 0: オートセーブ(標準), ID 1: クイックセーブ, ID 2+: ファイル (ID-1)
+        const _Window_SavefileList_drawTitle = Window_SavefileList.prototype.drawTitle;
+        Window_SavefileList.prototype.drawTitle = function (savefileId, x, y) {
+            if (savefileId === 1) {
+                this.drawText('クイックセーブ', x, y, 180);
+            } else if (savefileId >= 2) {
+                this.drawText(TextManager.file + ' ' + (savefileId - 1), x, y, 180);
+            } else {
+                _Window_SavefileList_drawTitle.call(this, savefileId, x, y);
+            }
+        };
+
+        // セーブファイル数にクイックセーブ分を含める
+        const _Window_SavefileList_maxItems = Window_SavefileList.prototype.maxItems;
+        Window_SavefileList.prototype.maxItems = function () {
+            return _Window_SavefileList_maxItems.call(this) + 1;
+        };
+
+        // セーブ画面でクイックセーブスロットをスキップして選択
+        const _Scene_Save_firstSavefileId = Scene_Save.prototype.firstSavefileId;
+        Scene_Save.prototype.firstSavefileId = function () {
+            const id = _Scene_Save_firstSavefileId.call(this);
+            return id <= 1 ? 2 : id;
+        };
+    }
 
     // =========================================================================
     // 無効化チェック
@@ -1281,8 +1346,8 @@
         const buttonDefs = [
             { key: 'auto', label: 'AUTO', img: param.autoButtonImage, activeImg: param.autoButtonActiveImage, hoverImg: param.autoButtonHoverImage },
             { key: 'skip', label: 'SKIP', img: param.skipButtonImage, activeImg: param.skipButtonActiveImage, hoverImg: param.skipButtonHoverImage },
-            { key: 'save', label: 'SAVE', img: param.saveButtonImage, activeImg: null, hoverImg: param.saveButtonHoverImage },
-            { key: 'load', label: 'LOAD', img: param.loadButtonImage, activeImg: null, hoverImg: param.loadButtonHoverImage },
+            { key: 'save', label: 'Q.SAVE', img: param.saveButtonImage, activeImg: null, hoverImg: param.saveButtonHoverImage },
+            { key: 'load', label: 'Q.LOAD', img: param.loadButtonImage, activeImg: null, hoverImg: param.loadButtonHoverImage },
             { key: 'log', label: 'LOG', img: param.logButtonImage, activeImg: null, hoverImg: param.logButtonHoverImage }
         ];
 
@@ -1769,7 +1834,7 @@
     };
 
     Window_Message.prototype._executeQuickSave = function () {
-        const slotId = (param.quickSaveSlot || 1) - 1;
+        const slotId = _getQuickSaveSlotId();
         $gameSystem.onBeforeSave();
         DataManager.saveGame(slotId)
             .then(() => {
@@ -1782,7 +1847,7 @@
     };
 
     Window_Message.prototype._executeQuickLoad = function () {
-        const slotId = (param.quickSaveSlot || 1) - 1;
+        const slotId = _getQuickSaveSlotId();
         DataManager.loadGame(slotId)
             .then(() => {
                 SoundManager.playLoad();
