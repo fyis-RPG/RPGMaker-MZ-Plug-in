@@ -6,52 +6,170 @@
 // http://opensource.org/licenses/mit-license.php
 // ----------------------------------------------------------------------------
 // Version
+// 1.3.0 2026/02/11 ボタン統一化・個別配置・スキップ速度設定
 // 1.2.0 2026/02/08 ボタン表示順・多段レイアウト・サブメニュートグル追加
 // 1.1.0 2026/02/08 名前ウィンドウ拡張・背景画像位置調整
 // 1.0.0 2026/02/07 初版
 //=============================================================================
 
 
-/*~struct~ButtonOrderConfig:
- * @param autoButtonOrder
- * @text オート表示順
- * @desc 0で非表示。0以外は小さい順に配置
- * @default 1
+/*~struct~ButtonDef:
+ * @param label
+ * @text ボタンラベル
+ * @desc ボタンに表示するテキスト
+ * @type string
+ * @default BTN
+ *
+ * @param action
+ * @text アクション
+ * @desc ボタン押下時に実行するアクション
+ * @type select
+ * @option オートモード切替
+ * @value auto
+ * @option スキップモード切替
+ * @value skip
+ * @option クイックセーブ
+ * @value quickSave
+ * @option クイックロード
+ * @value quickLoad
+ * @option バックログ表示
+ * @value log
+ * @option コモンイベント
+ * @value commonEvent
+ * @option セーブ画面を開く
+ * @value openSave
+ * @option ロード画面を開く
+ * @value openLoad
+ * @default auto
+ *
+ * @param commonEventId
+ * @text コモンイベントID
+ * @desc アクションが「コモンイベント」の場合に実行するID
+ * @type common_event
+ * @default 0
+ *
+ * @param order
+ * @text 表示順
+ * @desc 他ボタンと共通の並び順。0で非表示
  * @type number
+ * @default 100
  * @min 0
  * @max 9999
  *
- * @param skipButtonOrder
- * @text スキップ表示順
- * @desc 0で非表示。0以外は小さい順に配置
- * @default 2
- * @type number
- * @min 0
- * @max 9999
+ * @param posType
+ * @text 配置方式
+ * @desc auto=自動整列(他ボタンと並ぶ)、manual=個別位置指定
+ * @type select
+ * @option 自動整列
+ * @value auto
+ * @option 手動配置
+ * @value manual
+ * @default auto
  *
- * @param saveButtonOrder
- * @text セーブ表示順
- * @desc 0で非表示。0以外は小さい順に配置
- * @default 3
- * @type number
- * @min 0
- * @max 9999
+ * @param anchor
+ * @text 基準位置
+ * @desc 手動配置時の基準となるウィンドウの角
+ * @type select
+ * @option 左上
+ * @value left_top
+ * @option 右上
+ * @value right_top
+ * @option 左下
+ * @value left_bottom
+ * @option 右下
+ * @value right_bottom
+ * @default right_bottom
  *
- * @param loadButtonOrder
- * @text ロード表示順
- * @desc 0で非表示。0以外は小さい順に配置
- * @default 4
+ * @param marginX
+ * @text 基準からのX距離
+ * @desc 基準位置からの水平方向の距離(px)。常に正の値で内側方向。
  * @type number
+ * @default 0
  * @min 0
- * @max 9999
+ * @max 2000
  *
- * @param logButtonOrder
- * @text バックログ表示順
- * @desc 0で非表示。0以外は小さい順に配置
- * @default 5
+ * @param marginY
+ * @text 基準からのY距離
+ * @desc 基準位置からの垂直方向の距離(px)。常に正の値で内側方向。
  * @type number
+ * @default 0
  * @min 0
- * @max 9999
+ * @max 2000
+ *
+ * @param shortcutKey
+ * @text ショートカットキー
+ * @desc ボタンに割り当てるキー(省略可。組み込みアクションは別途キー設定パラメータを使用)
+ * @type select
+ * @option なし
+ * @value
+ * @option A
+ * @option B
+ * @option C
+ * @option D
+ * @option E
+ * @option F
+ * @option G
+ * @option H
+ * @option I
+ * @option J
+ * @option K
+ * @option L
+ * @option M
+ * @option N
+ * @option O
+ * @option P
+ * @option Q
+ * @option R
+ * @option S
+ * @option T
+ * @option U
+ * @option V
+ * @option W
+ * @option X
+ * @option Y
+ * @option Z
+ * @option 1
+ * @option 2
+ * @option 3
+ * @option 4
+ * @option 5
+ * @option F1
+ * @option F2
+ * @option F3
+ * @option F4
+ * @option F5
+ * @option F6
+ * @option F7
+ * @option F8
+ * @option F9
+ * @option F10
+ * @default
+ *
+ * @param needConfirm
+ * @text 確認ダイアログ
+ * @desc ONにするとボタン押下時に確認メッセージを表示
+ * @type boolean
+ * @default false
+ *
+ * @param confirmText
+ * @text 確認メッセージ
+ * @desc 確認ダイアログに表示するテキスト
+ * @type string
+ * @default 実行しますか？
+ *
+ * @param buttonImage
+ * @text ボタン画像
+ * @desc ボタン画像(img/pictures)
+ * @type file
+ * @dir img/pictures
+ * @default
+ *
+ * @param hoverImage
+ * @text ホバー画像
+ * @desc マウスオーバー時・アクティブ時の画像(img/pictures)
+ * @type file
+ * @dir img/pictures
+ * @default
  */
 
 /*:
@@ -167,6 +285,15 @@
  * @type boolean
  * @parent --- オート設定 ---
  *
+ * @param skipSpeed
+ * @text スキップ速度(フレーム)
+ * @desc スキップ時のメッセージ間の待機フレーム数。0=最速、値が大きいほどゆっくり。
+ * @type number
+ * @default 2
+ * @min 0
+ * @max 30
+ * @parent --- オート設定 ---
+ *
  * @param --- ボタン画像 ---
  * @default
  *
@@ -181,102 +308,6 @@
  * @param closeButtonHoverImage
  * @text ×ボタンホバー画像
  * @desc マウスオーバー時の×ボタン画像
- * @default
- * @type file
- * @dir img/pictures
- * @parent --- ボタン画像 ---
- *
- * @param autoButtonImage
- * @text オートボタン画像
- * @desc 通常状態のオートボタン画像(img/pictures)
- * @default
- * @type file
- * @dir img/pictures/
- * @parent --- ボタン画像 ---
- *
- * @param autoButtonActiveImage
- * @text オートボタン(有効時)画像
- * @desc オート有効時のボタン画像(img/pictures)
- * @default
- * @type file
- * @dir img/pictures/
- * @parent --- ボタン画像 ---
- *
- * @param autoButtonHoverImage
- * @text オートボタンホバー画像
- * @desc マウスオーバー時のオートボタン画像
- * @default
- * @type file
- * @dir img/pictures
- * @parent --- ボタン画像 ---
- *
- * @param skipButtonImage
- * @text スキップボタン画像
- * @desc 通常状態のスキップボタン画像(img/pictures)
- * @default
- * @type file
- * @dir img/pictures/
- * @parent --- ボタン画像 ---
- *
- * @param skipButtonActiveImage
- * @text スキップボタン(有効時)画像
- * @desc スキップ有効時のボタン画像(img/pictures)
- * @default
- * @type file
- * @dir img/pictures/
- * @parent --- ボタン画像 ---
- *
- * @param skipButtonHoverImage
- * @text スキップボタンホバー画像
- * @desc マウスオーバー時のスキップボタン画像
- * @default
- * @type file
- * @dir img/pictures
- * @parent --- ボタン画像 ---
- *
- * @param saveButtonImage
- * @text セーブボタン画像
- * @desc セーブボタン画像(img/pictures)
- * @default
- * @type file
- * @dir img/pictures/
- * @parent --- ボタン画像 ---
- *
- * @param saveButtonHoverImage
- * @text セーブボタンホバー画像
- * @desc マウスオーバー時のセーブボタン画像
- * @default
- * @type file
- * @dir img/pictures
- * @parent --- ボタン画像 ---
- *
- * @param loadButtonImage
- * @text ロードボタン画像
- * @desc ロードボタン画像(img/pictures)
- * @default
- * @type file
- * @dir img/pictures/
- * @parent --- ボタン画像 ---
- *
- * @param loadButtonHoverImage
- * @text ロードボタンホバー画像
- * @desc マウスオーバー時のロードボタン画像
- * @default
- * @type file
- * @dir img/pictures
- * @parent --- ボタン画像 ---
- *
- * @param logButtonImage
- * @text バックログボタン画像
- * @desc バックログボタン画像(img/pictures)
- * @default
- * @type file
- * @dir img/pictures/
- * @parent --- ボタン画像 ---
- *
- * @param logButtonHoverImage
- * @text ログボタンホバー画像
- * @desc マウスオーバー時のログボタン画像
  * @default
  * @type file
  * @dir img/pictures
@@ -308,21 +339,20 @@
  * @type boolean
  * @parent --- ボタンレイアウト ---
  *
- * @param autoAlignButtons
- * @text ボタン自動整列
- * @desc ON:画像幅に合わせて自動配置(→自動整列設定を使用) OFF:個別座標で配置(→手動配置設定を使用)
- * @default true
- * @type boolean
+ * @param buttons
+ * @text ボタン定義
+ * @desc メッセージウィンドウに表示するボタンの定義。表示順(order)の小さい順に配置。0で非表示。
+ * @type struct<ButtonDef>[]
+ * @default ["{\"label\":\"AUTO\",\"action\":\"auto\",\"order\":\"1\",\"needConfirm\":\"false\"}","{\"label\":\"SKIP\",\"action\":\"skip\",\"order\":\"2\",\"needConfirm\":\"false\"}","{\"label\":\"Q.SAVE\",\"action\":\"quickSave\",\"order\":\"3\",\"needConfirm\":\"true\",\"confirmText\":\"クイックセーブしますか？\"}","{\"label\":\"Q.LOAD\",\"action\":\"quickLoad\",\"order\":\"4\",\"needConfirm\":\"true\",\"confirmText\":\"クイックロードしますか？\"}","{\"label\":\"LOG\",\"action\":\"log\",\"order\":\"5\",\"needConfirm\":\"false\"}"]
  * @parent --- ボタンレイアウト ---
  *
- * @param --- 自動整列設定 ---
- * @text --- 自動整列設定(自動整列ON時のみ有効) ---
+ * @param --- 整列設定 ---
  * @default
  * @parent --- ボタンレイアウト ---
  *
  * @param buttonAlignPos
  * @text 整列基準位置
- * @desc ボタンをどの角から並べるかを指定します。(自動整列ON時のみ有効)
+ * @desc ボタンをどの角から並べるかを指定します。
  * @default right_bottom
  * @type select
  * @option 右下から左へ
@@ -333,196 +363,50 @@
  * @value right_top
  * @option 左上から右へ
  * @value left_top
- * @parent --- 自動整列設定 ---
+ * @parent --- 整列設定 ---
  *
  * @param buttonSpacing
  * @text ボタン間隔
- * @desc ボタン同士の間の隙間をピクセルで指定します。(自動整列ON時のみ有効)
+ * @desc ボタン同士の間の隙間をピクセルで指定します。
  * @default 4
  * @type number
  * @min 0
- * @parent --- 自動整列設定 ---
+ * @parent --- 整列設定 ---
  *
  * @param buttonAlignOffsetX
  * @text 整列基準X補正
- * @desc 整列の開始位置をX方向にずらします。マイナスで端から離れます。(自動整列ON時のみ有効)
+ * @desc 整列の開始位置をX方向にずらします。マイナスで端から離れます。
  * @default 0
  * @type number
  * @min -2000
  * @max 2000
- * @parent --- 自動整列設定 ---
+ * @parent --- 整列設定 ---
  *
  * @param buttonAlignOffsetY
  * @text 整列基準Y補正
- * @desc 整列の開始位置をY方向にずらします。マイナスで上方向。(自動整列ON時のみ有効)
+ * @desc 整列の開始位置をY方向にずらします。マイナスで上方向。
  * @default 0
  * @type number
  * @min -2000
  * @max 2000
- * @parent --- 自動整列設定 ---
- *
- * @param buttonOrder
- * @text ボタン表示順
- * @desc 各ボタンの表示順番号。小さい順に配置。0で非表示。(自動整列ON時のみ有効)
- * @default {"autoButtonOrder":"1","skipButtonOrder":"2","saveButtonOrder":"3","loadButtonOrder":"4","logButtonOrder":"5"}
- * @type struct<ButtonOrderConfig>
- * @parent --- 自動整列設定 ---
+ * @parent --- 整列設定 ---
  *
  * @param buttonColumns
  * @text 1段あたりのボタン数
- * @desc 指定数ごとに次の段に折り返します。0=折り返しなし。(自動整列ON時のみ有効)
+ * @desc 指定数ごとに次の段に折り返します。0=折り返しなし。
  * @default 0
  * @type number
  * @min 0
  * @max 10
- * @parent --- 自動整列設定 ---
+ * @parent --- 整列設定 ---
  *
  * @param buttonRowSpacing
  * @text 段間の間隔
- * @desc 多段配置時の段と段の間隔(ピクセル)。(自動整列ON時のみ有効)
+ * @desc 多段配置時の段と段の間隔(ピクセル)。
  * @default 2
  * @type number
  * @min 0
- * @parent --- 自動整列設定 ---
- *
- * @param --- 手動配置設定 ---
- * @text --- 手動配置設定(自動整列OFF時のみ有効) ---
- * @default
- * @parent --- ボタンレイアウト ---
- *
- * @param buttonAnchor
- * @text ボタン原点
- * @desc 各ボタンXY座標の基準点となるウィンドウの角。(自動整列OFF時のみ有効)
- * @default 3
- * @type select
- * @option 左上
- * @value 0
- * @option 右上
- * @value 1
- * @option 左下
- * @value 2
- * @option 右下
- * @value 3
- * @parent --- 手動配置設定 ---
- *
- * @param buttonPosType
- * @text ボタン座標タイプ
- * @desc 座標の指定方法。相対座標はウィンドウ原点基準、絶対座標は画面左上基準。(自動整列OFF時のみ有効)
- * @default relative
- * @type select
- * @option 相対座標(ウィンドウ基準)
- * @value relative
- * @option 絶対座標(画面基準)
- * @value absolute
- * @parent --- 手動配置設定 ---
- *
- * @param autoButtonX
- * @text オートボタンX
- * @desc オートボタンのX座標(自動整列OFF時のみ有効)
- * @default -456
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param autoButtonY
- * @text オートボタンY
- * @desc オートボタンのY座標(自動整列OFF時のみ有効)
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param skipButtonX
- * @text スキップボタンX
- * @desc スキップボタンのX座標(自動整列OFF時のみ有効)
- * @default -380
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param skipButtonY
- * @text スキップボタンY
- * @desc スキップボタンのY座標(自動整列OFF時のみ有効)
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param saveButtonX
- * @text セーブボタンX
- * @desc セーブボタンのX座標(自動整列OFF時のみ有効)
- * @default -304
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param saveButtonY
- * @text セーブボタンY
- * @desc セーブボタンのY座標(自動整列OFF時のみ有効)
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param loadButtonX
- * @text ロードボタンX
- * @desc ロードボタンのX座標(自動整列OFF時のみ有効)
- * @default -228
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param loadButtonY
- * @text ロードボタンY
- * @desc ロードボタンのY座標(自動整列OFF時のみ有効)
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param logButtonX
- * @text バックログボタンX
- * @desc バックログボタンのX座標(自動整列OFF時のみ有効)
- * @default -152
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param logButtonY
- * @text バックログボタンY
- * @desc バックログボタンのY座標(自動整列OFF時のみ有効)
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param menuButtonX
- * @text メニューボタンX
- * @desc メニューボタンのX座標(自動整列OFF時のみ有効)
- * @default -76
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
- *
- * @param menuButtonY
- * @text メニューボタンY
- * @desc メニューボタンのY座標(自動整列OFF時のみ有効)
- * @default -32
- * @type number
- * @min -2000
- * @max 2000
- * @parent --- 手動配置設定 ---
+ * @parent --- 整列設定 ---
  *
  * @param --- メッセージウィンドウ ---
  * @default
@@ -883,27 +767,46 @@
     const param = PluginManagerEx.createParameter(script);
 
     // ボタン並び順のヘルパー（各ボタンの表示順番号から算出、0=非表示）
-    const _defaultOrder = ['auto', 'skip', 'save', 'load', 'log'];
-    const _buttonOrderMap = {
-        auto: 'autoButtonOrder',
-        skip: 'skipButtonOrder',
-        save: 'saveButtonOrder',
-        load: 'loadButtonOrder',
-        log: 'logButtonOrder'
-    };
+    // =========================================================================
+    // ボタン定義の統一パース（param.buttons から全ボタンを構築）
+    // =========================================================================
+    const buttonDefs = [];
+    const buttonInputNames = {}; // key -> inputName（カスタムショートカット用）
+    if (param.buttons && Array.isArray(param.buttons)) {
+        param.buttons.forEach((bd, i) => {
+            if (!bd) return;
+            buttonDefs.push({
+                key: 'btn_' + i,
+                label: bd.label || 'BTN',
+                action: bd.action || 'auto',
+                commonEventId: Number(bd.commonEventId) || 0,
+                order: Number(bd.order) || 0,
+                posType: bd.posType || 'auto',
+                anchor: bd.anchor || 'right_bottom',
+                marginX: Number(bd.marginX) || 0,
+                marginY: Number(bd.marginY) || 0,
+                shortcutKey: bd.shortcutKey || '',
+                needConfirm: bd.needConfirm === true || bd.needConfirm === 'true',
+                confirmText: bd.confirmText || '実行しますか？',
+                buttonImage: bd.buttonImage || '',
+                hoverImage: bd.hoverImage || '',
+            });
+        });
+    }
+
     const _getButtonOrder = function () {
-        const cfg = param.buttonOrder;
-        if (!cfg || typeof cfg !== 'object') return _defaultOrder;
         const entries = [];
-        for (const [key, paramName] of Object.entries(_buttonOrderMap)) {
-            const order = cfg[paramName];
-            if (order != null && order !== 0) {
-                entries.push({ key, order });
+        for (const def of buttonDefs) {
+            if (def.order > 0) {
+                entries.push({ key: def.key, order: def.order });
             }
         }
-        if (entries.length === 0) return _defaultOrder;
         entries.sort((a, b) => a.order - b.order);
         return entries.map(e => e.key);
+    };
+
+    const _getAllButtonKeys = function () {
+        return buttonDefs.map(d => d.key);
     };
 
     // autoWaitFrame は計算式文字列なので、createParameter の数値変換を避けて直接取得
@@ -941,6 +844,7 @@
         return inputName;
     };
 
+    // 組み込みアクション用のショートカットキー（既存パラメータ）
     const autoInputName = registerCustomKey(param.autoKey, 'msgCtrl_auto');
     const skipInputName = registerCustomKey(param.skipKey, 'msgCtrl_skip');
     const saveInputName = registerCustomKey(param.saveKey, 'msgCtrl_save');
@@ -950,6 +854,16 @@
     // Home/Endキーは常に登録（バックログジャンプ用）
     customKeyMap[36] = 'msgCtrl_home'; // Home
     customKeyMap[35] = 'msgCtrl_end';  // End
+
+    // ButtonDef の shortcutKey 登録（組み込みアクション以外のボタン用）
+    const builtinActions = ['auto', 'skip', 'quickSave', 'quickLoad', 'log'];
+    for (const def of buttonDefs) {
+        if (def.shortcutKey && !builtinActions.includes(def.action)) {
+            const inputName = 'msgCtrl_' + def.key;
+            registerCustomKey(def.shortcutKey, inputName);
+            buttonInputNames[def.key] = inputName;
+        }
+    }
 
     // Input._onKeyDown/Up をフックして、カスタムキーの状態を
     // Input._currentState に直接書き込む（keyMapper を経由しない）
@@ -1343,20 +1257,15 @@
     // ----- ボタン作成 -----
     Window_Message.prototype._createControlButtons = function () {
         this._ctrlButtons = {};
-        const buttonDefs = [
-            { key: 'auto', label: 'AUTO', img: param.autoButtonImage, activeImg: param.autoButtonActiveImage, hoverImg: param.autoButtonHoverImage },
-            { key: 'skip', label: 'SKIP', img: param.skipButtonImage, activeImg: param.skipButtonActiveImage, hoverImg: param.skipButtonHoverImage },
-            { key: 'save', label: 'Q.SAVE', img: param.saveButtonImage, activeImg: null, hoverImg: param.saveButtonHoverImage },
-            { key: 'load', label: 'Q.LOAD', img: param.loadButtonImage, activeImg: null, hoverImg: param.loadButtonHoverImage },
-            { key: 'log', label: 'LOG', img: param.logButtonImage, activeImg: null, hoverImg: param.logButtonHoverImage }
-        ];
+        this._buttonDefs = buttonDefs;
 
+        // 全ボタンをbuttonDefsから統一的に生成
         for (const def of buttonDefs) {
-            const btn = new Sprite_MsgCtrlButton(def.label, def.img, def.activeImg, def.hoverImg);
+            const btn = new Sprite_MsgCtrlButton(def.label, def.buttonImage, null, def.hoverImage);
+            btn._buttonDef = def;
             this._ctrlButtons[def.key] = btn;
             this.addChild(btn);
 
-            // 画像ロード完了後にレイアウト再計算
             if (btn.bitmap && !btn.bitmap.isReady()) {
                 btn.bitmap.addLoadListener(() => {
                     this._updateControlButtonPlacement();
@@ -1388,25 +1297,9 @@
         }
     };
 
-    Window_Message.prototype._getRelativeButtonPos = function (origX, origY) {
-        let x = origX;
-        let y = origY;
-        const anchor = param.buttonAnchor || 0;
-        if (anchor === 1 || anchor === 3) x += this.width;
-        if (anchor === 2 || anchor === 3) y += this.height;
-        if (param.buttonPosType === 'absolute') {
-            x -= this.x;
-            y -= this.y;
-        }
-        return { x, y };
-    };
-
     Window_Message.prototype._updateControlButtonPlacement = function () {
-        if (param.autoAlignButtons) {
-            this._alignControlButtons();
-        } else {
-            this._placeControlButtons();
-        }
+        this._alignControlButtons();
+        this._placeManualButtons();
 
         // ×ボタンの配置（右上基準、重なり時は左にずらす）
         if (this._ctrlButtons.close) {
@@ -1416,49 +1309,25 @@
             let closeX = this.width - closeBtnW - 4;
             let closeY = 4;
 
-            // 自動整列時：他ボタンと重なるなら左にずらす
-            if (param.autoAlignButtons) {
-                const shouldCheck = !param.enableSubMenu || this._subMenuOpen;
-                if (shouldCheck) {
-                    for (const key of Object.keys(this._ctrlButtons)) {
-                        if (key === 'close') continue;
-                        const other = this._ctrlButtons[key];
-                        if (!other.visible) continue;
-                        const otherW = (other.bitmap && other.bitmap.isReady()) ? other.bitmap.width : (param.fallbackButtonWidth || 72);
-                        const otherH = (other.bitmap && other.bitmap.isReady()) ? other.bitmap.height : (param.fallbackButtonHeight || 28);
-                        // 矩形の重なり判定
-                        if (closeX < other.x + otherW && closeX + closeBtnW > other.x &&
-                            closeY < other.y + otherH && closeY + closeBtnH > other.y) {
-                            closeX = other.x - closeBtnW - 4;
-                            break;
-                        }
+            // 他ボタンと重なるなら左にずらす
+            const shouldCheck = !param.enableSubMenu || this._subMenuOpen;
+            if (shouldCheck) {
+                for (const key of Object.keys(this._ctrlButtons)) {
+                    if (key === 'close') continue;
+                    const other = this._ctrlButtons[key];
+                    if (!other.visible) continue;
+                    const otherW = (other.bitmap && other.bitmap.isReady()) ? other.bitmap.width : (param.fallbackButtonWidth || 72);
+                    const otherH = (other.bitmap && other.bitmap.isReady()) ? other.bitmap.height : (param.fallbackButtonHeight || 28);
+                    if (closeX < other.x + otherW && closeX + closeBtnW > other.x &&
+                        closeY < other.y + otherH && closeY + closeBtnH > other.y) {
+                        closeX = other.x - closeBtnW - 4;
+                        break;
                     }
                 }
             }
 
             btn.x = closeX;
             btn.y = closeY;
-        }
-    };
-
-    Window_Message.prototype._placeControlButtons = function () {
-        // 0はデフォルト値として有効なのでnullチェックを使用
-        const getVal = (v, def) => (v !== undefined && v !== null) ? v : def;
-        const positions = {
-            auto: { x: getVal(param.autoButtonX, -456), y: getVal(param.autoButtonY, -32) },
-            skip: { x: getVal(param.skipButtonX, -380), y: getVal(param.skipButtonY, -32) },
-            save: { x: getVal(param.saveButtonX, -304), y: getVal(param.saveButtonY, -32) },
-            load: { x: getVal(param.loadButtonX, -228), y: getVal(param.loadButtonY, -32) },
-            log: { x: getVal(param.logButtonX, -152), y: getVal(param.logButtonY, -32) },
-            menu: { x: getVal(param.menuButtonX, -76), y: getVal(param.menuButtonY, -32) }
-        };
-
-        for (const key of Object.keys(positions)) {
-            if (this._ctrlButtons[key]) {
-                const pos = this._getRelativeButtonPos(positions[key].x, positions[key].y);
-                this._ctrlButtons[key].x = pos.x;
-                this._ctrlButtons[key].y = pos.y;
-            }
         }
     };
 
@@ -1493,19 +1362,22 @@
         // 並べるボタンの順序（パラメータから取得、未指定ならデフォルト）
         const order = _getButtonOrder();
 
-        // サブメニュー対象キー（ON時は全ボタンが対象）
-        const subMenuKeys = param.enableSubMenu ? ['auto', 'skip', 'save', 'load', 'log'] : [];
+        // 手動配置ボタンのキーを収集
+        const manualKeys = (this._buttonDefs || []).filter(d => d.posType === 'manual').map(d => d.key);
 
-        // リストに含まれないボタンを非表示
-        const allKeys = ['auto', 'skip', 'save', 'load', 'log'];
-        for (const key of allKeys) {
-            if (this._ctrlButtons[key]) {
+        // サブメニュー対象キー（ON時は全ボタンが対象）
+        const allBtnKeys = _getAllButtonKeys();
+        const subMenuKeys = param.enableSubMenu ? allBtnKeys : [];
+
+        // リストに含まれないボタンを非表示（手動配置ボタンはここでは制御しない）
+        for (const key of allBtnKeys) {
+            if (this._ctrlButtons[key] && !manualKeys.includes(key)) {
                 this._ctrlButtons[key].visible = order.includes(key);
             }
         }
 
-        // レイアウト用のキー配列を構築（メニューボタン＋表示順のボタン）
-        let layoutKeys = [...order];
+        // レイアウト用のキー配列を構築（手動配置ボタンを除外）
+        let layoutKeys = order.filter(k => !manualKeys.includes(k));
         // サブメニューON時：閉じているときはサブメニュー対象を除外
         if (param.enableSubMenu && !this._subMenuOpen) {
             layoutKeys = layoutKeys.filter(k => !subMenuKeys.includes(k));
@@ -1565,6 +1437,35 @@
         });
     };
 
+    // ----- 手動配置ボタン -----
+    Window_Message.prototype._placeManualButtons = function () {
+        const defs = (this._buttonDefs || []).filter(d => d.posType === 'manual' && d.order > 0);
+        for (const def of defs) {
+            const btn = this._ctrlButtons[def.key];
+            if (!btn) continue;
+            const btnW = (btn.bitmap && btn.bitmap.isReady()) ? btn.bitmap.width : (param.fallbackButtonWidth || 72);
+            const btnH = (btn.bitmap && btn.bitmap.isReady()) ? btn.bitmap.height : (param.fallbackButtonHeight || 28);
+            const anchor = def.anchor || 'right_bottom';
+            const mx = def.marginX || 0;
+            const my = def.marginY || 0;
+
+            let x = 0, y = 0;
+            if (anchor.includes('right')) {
+                x = this.width - btnW - mx;
+            } else {
+                x = mx;
+            }
+            if (anchor.includes('bottom')) {
+                y = this.height - btnH - my;
+            } else {
+                y = my;
+            }
+
+            btn.x = x;
+            btn.y = y;
+        }
+    };
+
     // ----- ボタン表示/非表示 -----
     const _Window_Message_update = Window_Message.prototype.update;
     Window_Message.prototype.update = function () {
@@ -1589,22 +1490,18 @@
         if (!this._ctrlButtons) return;
         const visible = this.isOpen() && !isPluginDisabled() && isButtonVisible() && !this._msgCtrlHidden;
 
-        // 自動整列ON時は除外ボタンを常に非表示
-        let excludedKeys = [];
-        if (param.autoAlignButtons) {
-            const order = _getButtonOrder();
-            excludedKeys = ['auto', 'skip', 'save', 'load', 'log'].filter(k => !order.includes(k));
-        }
+        // 除外ボタン (order=0 で非表示)
+        const allBtnKeys = _getAllButtonKeys();
+        const order = _getButtonOrder();
+        const excludedKeys = allBtnKeys.filter(k => !order.includes(k));
 
         // サブメニュー対象（ON時は全ボタンが対象）
-        const subMenuKeys = param.enableSubMenu ? ['auto', 'skip', 'save', 'load', 'log'] : [];
+        const subMenuKeys = param.enableSubMenu ? allBtnKeys : [];
 
         for (const key of Object.keys(this._ctrlButtons)) {
             if (key === 'menu') {
-                // メニューボタン自体は常に表示
                 this._ctrlButtons[key].visible = visible;
             } else if (param.enableSubMenu && subMenuKeys.includes(key)) {
-                // サブメニュー対象はトグル状態に応じて表示
                 this._ctrlButtons[key].visible = visible && this._subMenuOpen && !excludedKeys.includes(key);
             } else {
                 this._ctrlButtons[key].visible = visible && !excludedKeys.includes(key);
@@ -1612,12 +1509,15 @@
         }
         if (!visible) return;
 
-        // アクティブ状態の更新
-        if (this._ctrlButtons.auto) {
-            this._ctrlButtons.auto.setActive($gameMessage.isMsgCtrlAuto());
-        }
-        if (this._ctrlButtons.skip) {
-            this._ctrlButtons.skip.setActive($gameMessage.isMsgCtrlSkip());
+        // アクティブ状態の更新（buttonDefsベース）
+        for (const def of (this._buttonDefs || [])) {
+            const btn = this._ctrlButtons[def.key];
+            if (!btn) continue;
+            if (def.action === 'auto') {
+                btn.setActive($gameMessage.isMsgCtrlAuto());
+            } else if (def.action === 'skip') {
+                btn.setActive($gameMessage.isMsgCtrlSkip());
+            }
         }
     };
 
@@ -1651,6 +1551,30 @@
 
 
 
+
+    // ----- Wait バイパス（スキップ/オート中はstartPauseのwaitを制御） -----
+    const _Window_Message_updateWait = Window_Message.prototype.updateWait;
+    Window_Message.prototype.updateWait = function () {
+        if ($gameMessage.isMsgCtrlSkip()) {
+            // スキップ中: waitをskipSpeedフレームに制限
+            const skipSpd = (param.skipSpeed != null) ? Number(param.skipSpeed) : 2;
+            if (this._waitCount > skipSpd) {
+                this._waitCount = skipSpd;
+            }
+            // skipSpeed=0 なら即座にバイパス
+            if (skipSpd <= 0) {
+                this._waitCount = 0;
+                return false;
+            }
+            return _Window_Message_updateWait.call(this);
+        }
+        if ($gameMessage.isMsgCtrlAuto()) {
+            // オート中: waitを即座にバイパスして autoCount 制御に任せる
+            this._waitCount = 0;
+            return false;
+        }
+        return _Window_Message_updateWait.call(this);
+    };
 
     // ----- キー操作 -----
     const _Window_Message_updateInput = Window_Message.prototype.updateInput;
@@ -1696,6 +1620,20 @@
 
         // スキップモード中の高速送り
         if ($gameMessage.isMsgCtrlSkip() && this.pause) {
+            // キャンセル入力を先にチェック（Z/クリック/スキップキーで中断）
+            const skipInputName = param.skipKey || 'control';
+            const isPressingSkip = param.pressingSkip && Input.isPressed(skipInputName);
+            if (!isPressingSkip) {
+                if (Input.isTriggered('ok') || Input.isTriggered('cancel') ||
+                    TouchInput.isTriggered() || Input.isTriggered(skipInputName)) {
+                    $gameMessage.setMsgCtrlSkip(false);
+                    this._msgCtrlSkipByPress = false;
+                    Input.clear();
+                    TouchInput.clear();
+                    return true;
+                }
+            }
+            // キャンセルされなければ高速送り実行
             this.pause = false;
             if (!this._textState) {
                 this.terminateMessage();
@@ -1734,31 +1672,19 @@
     };
 
     Window_Message.prototype._updateMsgCtrlKeyInput = function () {
-        // ボタンクリックチェック
+        // ボタンクリックチェック（buttonDefs統一ループ）
         if (this._ctrlButtons) {
-            if (this._ctrlButtons.auto && this._ctrlButtons.auto.isClicked()) {
-                this._onAutoToggle();
-                return true;
+            for (const def of (this._buttonDefs || [])) {
+                if (this._ctrlButtons[def.key] && this._ctrlButtons[def.key].isClicked()) {
+                    this._onButtonAction(def);
+                    return true;
+                }
             }
-            if (this._ctrlButtons.skip && this._ctrlButtons.skip.isClicked()) {
-                this._onSkipToggle();
-                return true;
-            }
-            if (this._ctrlButtons.save && this._ctrlButtons.save.isClicked()) {
-                this._onQuickSave();
-                return true;
-            }
-            if (this._ctrlButtons.load && this._ctrlButtons.load.isClicked()) {
-                this._onQuickLoad();
-                return true;
-            }
-            if (this._ctrlButtons.log && this._ctrlButtons.log.isClicked()) {
-                this._onShowBacklog();
-                return true;
-            }
+            // メニューボタン
             if (this._ctrlButtons.menu && this._ctrlButtons.menu.isClicked()) {
                 this._subMenuOpen = !this._subMenuOpen;
                 this._updateControlButtonPlacement();
+                SoundManager.playCursor();
                 return true;
             }
             // ×ボタンは他のボタンより後に判定（重なり時に他ボタン優先）
@@ -1769,15 +1695,15 @@
             }
         }
 
-        // ショートカットキー
+        // 組み込みアクション用ショートカットキー
         if (autoInputName && Input.isTriggered(autoInputName)) {
-            this._onAutoToggle();
+            this._executeButtonAction({ action: 'auto' });
         }
         if (skipInputName && Input.isTriggered(skipInputName)) {
             if (param.pressingSkip) {
                 // 押し続けスキップは別処理
             } else {
-                this._onSkipToggle();
+                this._executeButtonAction({ action: 'skip' });
             }
         }
         if (param.pressingSkip && skipInputName) {
@@ -1795,41 +1721,64 @@
             }
         }
         if (saveInputName && Input.isTriggered(saveInputName)) {
-            this._onQuickSave();
+            this._executeButtonAction({ action: 'quickSave' });
         }
         if (loadInputName && Input.isTriggered(loadInputName)) {
-            this._onQuickLoad();
+            this._executeButtonAction({ action: 'quickLoad' });
         }
-        // バックログはフラグを立ててScene_Mapから安全にシーン遷移する
         if (logInputName && Input.isTriggered(logInputName)) {
-            this._onShowBacklog();
+            this._executeButtonAction({ action: 'log' });
+        }
+        // ButtonDef のショートカットキー（カスタムアクション用）
+        for (const def of (this._buttonDefs || [])) {
+            const inputName = buttonInputNames[def.key];
+            if (inputName && Input.isTriggered(inputName)) {
+                this._onButtonAction(def);
+            }
         }
         return false;
     };
 
-    Window_Message.prototype._onAutoToggle = function () {
-        $gameMessage.toggleMsgCtrlAuto();
-        SoundManager.playCursor();
-    };
-
-    Window_Message.prototype._onSkipToggle = function () {
-        $gameMessage.toggleMsgCtrlSkip();
-        SoundManager.playCursor();
-    };
-
-    Window_Message.prototype._onQuickSave = function () {
-        if (this._msgCtrlConfirmWindow) {
-            this._msgCtrlConfirmWindow.showConfirm('save', 'クイックセーブしますか？');
+    // ----- 統一アクションハンドラ -----
+    Window_Message.prototype._onButtonAction = function (def) {
+        if (def.needConfirm && this._msgCtrlConfirmWindow) {
+            this._msgCtrlConfirmWindow.showConfirm('button', def.confirmText, def);
         } else {
-            this._executeQuickSave();
+            this._executeButtonAction(def);
         }
     };
 
-    Window_Message.prototype._onQuickLoad = function () {
-        if (this._msgCtrlConfirmWindow) {
-            this._msgCtrlConfirmWindow.showConfirm('load', 'クイックロードしますか？');
-        } else {
-            this._executeQuickLoad();
+    Window_Message.prototype._executeButtonAction = function (def) {
+        switch (def.action) {
+            case 'auto':
+                $gameMessage.toggleMsgCtrlAuto();
+                SoundManager.playCursor();
+                break;
+            case 'skip':
+                $gameMessage.toggleMsgCtrlSkip();
+                SoundManager.playCursor();
+                break;
+            case 'quickSave':
+                this._executeQuickSave();
+                break;
+            case 'quickLoad':
+                this._executeQuickLoad();
+                break;
+            case 'log':
+                $gameTemp.requestCallBacklogOnMap();
+                break;
+            case 'commonEvent':
+                if (def.commonEventId > 0) {
+                    $gameTemp.reserveCommonEvent(def.commonEventId);
+                    SoundManager.playOk();
+                }
+                break;
+            case 'openSave':
+                SceneManager.push(Scene_Save);
+                break;
+            case 'openLoad':
+                SceneManager.push(Scene_Load);
+                break;
         }
     };
 
@@ -1857,11 +1806,6 @@
             .catch(() => {
                 SoundManager.playBuzzer();
             });
-    };
-
-    Window_Message.prototype._onShowBacklog = function () {
-        // Scene_Mapのupdateから安全にシーン遷移するためフラグを立てる
-        $gameTemp.requestCallBacklogOnMap();
     };
 
     // ----- メッセージ表示開始時のカウント初期化 -----
@@ -2003,7 +1947,7 @@
             super();
             this._label = label;
             this._imageName = imageName || '';
-            this._activeImageName = activeImageName || '';
+            // activeImageName は後方互換のため引数を受けるが無視する
             this._hoverImageName = hoverImageName || '';
             this._isActive = false;
             this._isHovered = false;
@@ -2018,8 +1962,6 @@
                 // 画像ボタン
                 this._isUsingImage = true;
                 this._normalBitmap = ImageManager.loadPicture(this._imageName);
-                this._activeBitmap = this._activeImageName ?
-                    ImageManager.loadPicture(this._activeImageName) : this._normalBitmap;
                 this._hoverBitmap = this._hoverImageName ?
                     ImageManager.loadPicture(this._hoverImageName) : null;
                 this.bitmap = this._normalBitmap;
@@ -2072,8 +2014,15 @@
             ctx.stroke();
             ctx.restore();
 
-            // テキスト
-            this.bitmap.fontSize = param.fallbackButtonFontSize || 14;
+            // テキスト（ラベル自動縮小: ボタン幅に収まるまでフォントサイズを下げる）
+            let fontSize = param.fallbackButtonFontSize || 14;
+            const minFontSize = 9;
+            const maxTextWidth = w - 8; // 左右4pxパディング
+            this.bitmap.fontSize = fontSize;
+            while (this.bitmap.measureTextWidth(this._label) > maxTextWidth && fontSize > minFontSize) {
+                fontSize--;
+                this.bitmap.fontSize = fontSize;
+            }
             this.bitmap.textColor = active ? '#333333' : '#ffffff';
             this.bitmap.outlineColor = active ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.7)';
             this.bitmap.outlineWidth = 2;
@@ -2118,11 +2067,9 @@
                 if (this._pressed) {
                     // プレス時は輝度を下げる
                     this.setColorTone([-32, -32, -32, 0]);
-                    this.bitmap = this._isActive ? this._activeBitmap : this._normalBitmap;
-                } else if (this._isActive) {
-                    this.setColorTone([0, 0, 0, 0]);
-                    this.bitmap = this._activeBitmap;
-                } else if (this._isHovered) {
+                    this.bitmap = (this._isActive && this._hoverBitmap) ? this._hoverBitmap : this._normalBitmap;
+                } else if (this._isActive || this._isHovered) {
+                    // アクティブ時・ホバー時は同じホバー画像を使用
                     if (this._hoverBitmap) {
                         this.setColorTone([0, 0, 0, 0]);
                         this.bitmap = this._hoverBitmap;
@@ -2463,9 +2410,12 @@
 
     Scene_Message.prototype._onMsgCtrlConfirmYes = function () {
         const action = this._msgCtrlConfirmWindow.getAction();
+        const extraData = this._msgCtrlConfirmWindow.getExtraData();
         this._msgCtrlConfirmWindow.close();
         this._msgCtrlConfirmWindow.deactivate();
-        if (action === 'save') {
+        if (action === 'button' && extraData) {
+            this._messageWindow._executeButtonAction(extraData);
+        } else if (action === 'save') {
             this._messageWindow._executeQuickSave();
         } else if (action === 'load') {
             this._messageWindow._executeQuickLoad();
@@ -2515,8 +2465,9 @@
             }
         }
 
-        showConfirm(action, text) {
+        showConfirm(action, text, extraData) {
             this._action = action;
+            this._extraData = extraData || null;
             this._questionText = text;
             this.refresh();
             this.open();
@@ -2526,6 +2477,10 @@
 
         getAction() {
             return this._action;
+        }
+
+        getExtraData() {
+            return this._extraData;
         }
     }
 
